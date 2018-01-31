@@ -78,6 +78,19 @@ foreach my $arg ( keys %$parent_args ) {
         Value => $parent_args->{$arg},
         Queue => $Queue->Id,
     );
+
+    # Check if Ticket id is present, if it is not we know we are creating a Ticket
+    if ( !$parent_args->{'id'} ){
+        my $queue_id = $parent_args->{'Queue'};
+
+        my $QueueObj = RT::Queue->new($session{'CurrentUser'});
+        $QueueObj->Load( $queue_id );
+
+        if ($QueueObj->QueueDefaultArticle){
+            $article->Load( $QueueObj->QueueDefaultArticle );
+        }
+    }
+
     next unless $article && $article->id;
 
     my $formatted_article = $m->scomp('/Articles/Article/Elements/Preformatted',
