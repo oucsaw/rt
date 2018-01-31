@@ -155,6 +155,7 @@ sub Create {
         CorrespondAddress => '',
         CommentAddress    => '',
         Lifecycle         => 'default',
+        QueueDefaultArticle    => undef,
         SubjectTag        => undef,
         Sign              => undef,
         SignAuto          => undef,
@@ -199,7 +200,7 @@ sub Create {
     }
     $RT::Handle->Commit;
 
-    for my $attr (qw/Sign SignAuto Encrypt SLA/) {
+    for my $attr (qw/Sign SignAuto Encrypt SLA QueueDefaultArticle/) {
         next unless defined $args{$attr};
         my $set = "Set" . $attr;
         my ($status, $msg) = $self->$set( $args{$attr} );
@@ -212,7 +213,60 @@ sub Create {
     return ( $id, $self->loc("Queue created") );
 }
 
+=head2 QueueDefaultArticle
 
+Returns ID for Default Article for Queue.
+
+=cut
+
+sub QueueDefaultArticle {
+    my $self = shift;
+
+    my $attr = $self->FirstAttribute('QueueDefaultArticle') ;
+    my $content = $attr && $attr->Content ? $attr->Content : undef;
+    return $content;
+ }
+
+=head2 SetQueueDefaultArticle
+
+Takes ID value for Article and sets Queue attribute QueueDefaultArticle to that
+ID.
+
+=cut
+
+sub SetQueueDefaultArticle{
+    my $self = shift;
+    my $value = shift;
+
+    my $article = RT::Article->new( RT->SystemUser );
+    my $no_value = $self->loc("(no value)");
+    my $new_value;
+    my $old_value;
+
+    # If unsetting Default Article $value will come in as empty string, do not load that.
+    if ( $value && $value ne "" ){
+        my ($ret, $msg) = $article->Load( $value );
+        return ($ret, $msg) unless $ret;
+        $new_value = $article->Name;
+    }
+
+    if ( length($self->QueueDefaultArticle()) ) {
+        my ($ret, $msg) = $article->Load( $self->QueueDefaultArticle() );
+        return ($ret, $msg) unless $ret;
+        $old_value = $article->Name;
+    }
+
+    my ($ret, $msg) = $self->SetAttribute(
+        Name        => 'QueueDefaultArticle',
+        Content     => $value,
+    );
+    return ($ret, $msg) unless $ret;
+
+    return (1,
+        $self->loc("Default Article changed from [_1] to [_2]",
+            $old_value ? "'" . $old_value . "'" : $no_value,
+            $new_value ? "'" . $new_value . "'" : $no_value));
+}
 
 sub Delete {
     my $self = shift;

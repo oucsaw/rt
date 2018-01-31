@@ -80,6 +80,10 @@
 % }
 </td></tr>
 
+<tr><td align="right"><&|/l&>Default Article</&>:</td><td colspan="3">
+<& /Elements/ArticleSelect, QueueObj => $QueueObj &>
+</td></tr>
+
 <tr><td align="right"><&|/l&>Subject Tag</&>:</td>
 <td colspan="3"><input name="SubjectTag" value="<% $ARGS{'SubjectTag'} || ($Create ? "" : $QueueObj->SubjectTag || '' ) %>" size="60" /></td>
 </tr>
@@ -189,7 +193,7 @@ unless ($Create) {
 if ( $QueueObj->Id ) {
     $title = loc('Configuration for queue [_1]', $QueueObj->Name );
     my @attribs= qw(Description CorrespondAddress CommentAddress Name SortOrder
-        Sign SignAuto Encrypt Lifecycle SubjectTag SLADisabled Disabled);
+        Sign SignAuto Encrypt Lifecycle QueueDefaultArticle SubjectTag SLADisabled Disabled);
 
     # we're asking about enabled on the web page but really care about disabled
     if ( $SetEnabled ) {
@@ -265,6 +269,7 @@ $CorrespondAddress => undef
 $CommentAddress => undef
 $SetSLAEnabled => undef
 $SetEnabled => undef
+$QueueDefaultArticle => undef
 $SetCrypt => undef
 $SLAEnabled => undef
 $Enabled => undef
