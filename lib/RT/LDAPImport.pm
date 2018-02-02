@@ -394,7 +394,7 @@ sub connect_ldap {
 
     $RT::Logger->debug("connecting to $RT::LDAPHost");
     unless ($ldap) {
-        $RT::Logger->error("Can't connect to $RT::LDAPHost");
+        $RT::Logger->error("Can't connect to $RT::LDAPHost $@");
         return;
     }
 
