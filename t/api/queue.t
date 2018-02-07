@@ -115,4 +115,44 @@ ok ($group->Id, "Found the AdminCc object for this Queue");
     is($WithSLA->SLA, 'standard', 'SLA is updated');
 }
 
+{
+    my $class = RT::Class->new(RT->SystemUser);
+    my ($ret, $msg) = $class->Create( Name => 'General' );
+    ok($ret, $msg);
+
+    my $queue = RT::Queue->new(RT->SystemUser);
+    ($ret, $msg) = $queue->Create( Name => 'Test');
+    ok($ret, $msg);
+
+    my $article = RT::Article->new($RT::SystemUser);
+    ( $ret, $msg ) = $article->Create(
+        Class   => 'General',
+        Name    => 'My Article',
+    );
+    ok( $ret, $msg );
+
+    ($ret, $msg) = $article->Load(1);
+    ok ($ret, $msg);
+
+    is($queue->QueueDefaultArticle(), undef, 'No set Default Article value returns undef');
+
+    $queue->SetQueueDefaultArticle(2);
+    is($queue->QueueDefaultArticle(), undef, 'No value set for invalid Default Article id');
+
+    $queue->SetQueueDefaultArticle(1);
+    is($queue->QueueDefaultArticle(), 1, 'Valid Article ID is set and stored');
+
+    $queue->SetQueueDefaultArticle("");
+    is($queue->QueueDefaultArticle(), undef, 'Return undef when Default Article removed');
+
+    $queue->SetQueueDefaultArticle(undef);
+    is($queue->QueueDefaultArticle(), undef, 'Return undef when undef is given as input for SetQueueDefaultArticle');
+    
+    ($ret, $msg) = $queue->SetQueueDefaultArticle(1);
+    is($msg, 'Default Article changed from (no value) to \'My Article\'', 'Correct message when Default Article value changed from none');
+
+    ($ret, $msg) = $queue->SetQueueDefaultArticle('');
+    is($msg, 'Default Article changed from \'My Article\' to (no value)', 'Correct message when Default Article value changed from value to no value');
+}
+
 done_testing;
